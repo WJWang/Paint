@@ -1,0 +1,33 @@
+{
+  "name": "mckinseydemo",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "radium": "^0.24.0",
+    "react": "^16.4.0",
+    "react-dom": "^16.4.0",
+    "rxjs": "^6.2.1"
+  },
+  "devDependencies": {
+    "@koa/cors": "^2.2.1",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-jsx-a11y": "^6.0.3",
+    "eslint-plugin-react": "^7.9.1",
+    "koa": "^2.5.1",
+    "koa-bodyparser": "^4.2.1",
+    "koa-multer": "^1.0.2",
+    "koa-router": "^7.4.0",
+    "koa-static": "^4.0.3",
+    "react-scripts": "1.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject",
+    "server": "rm -rf ./mock/uploads && PORT=8888 node mock/server.js"
+  }
+}
