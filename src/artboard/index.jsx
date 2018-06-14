@@ -78,21 +78,38 @@ class ArtBoard extends Component {
     this.setState({
       layers: [
         ...this.state.layers,
-        layer,
+        {
+          id: (this.state.layers.length) ? this.state.layers.length + 1 : 1,
+          ...layer,
+        },
       ],
     }, () => {
       this.drawResult();
     });
   }
 
-  clearResult = () => {
+  deleteLayer = layerId => (e) => {
+    e.preventDefault();
+    this.setState({
+      layers: this.state.layers.filter(layer => layer.id !== layerId),
+    }, () => {
+      this.clearBoard();
+      this.drawResult();
+    });
+  }
+
+  clearBoard = () => {
     const { resultBoard } = this.state;
+    resultBoard
+      .getContext('2d')
+      .clearRect(0, 0, resultBoard.width, resultBoard.height);
+  }
+
+  clearResult = () => {
     this.setState({
       layers: [],
     }, () => {
-      resultBoard
-        .getContext('2d')
-        .clearRect(0, 0, resultBoard.width, resultBoard.height);
+      this.clearBoard();
     });
   }
 
@@ -136,7 +153,9 @@ class ArtBoard extends Component {
   }
 
   render() {
-    const { selectedTool, boardWidth, boardHeight } = this.state;
+    const {
+      selectedTool, boardWidth, boardHeight, layers,
+    } = this.state;
     const itemSelectedStyle = item => (
       item === selectedTool ? styles.controlPanelWrapper.controlItemSelected : {}
     );
@@ -169,15 +188,6 @@ class ArtBoard extends Component {
             }}>
             <i className="material-icons">crop_din</i>
           </button>
-          <button
-            onClick={this.setTool('SELECT')}
-            style={{
-              ...styles.controlPanelWrapper.controlItem,
-              transform: 'rotate(270deg)',
-              ...itemSelectedStyle('SELECT'),
-            }}>
-            <i className="material-icons">near_me</i>
-          </button>
 
           <button
             onClick={this.clearResult}
@@ -202,6 +212,49 @@ class ArtBoard extends Component {
           boardWidth={boardWidth}
           boardHeight={boardHeight}
           save={this.saveLayer} />
+
+        {
+          (layers.length) ? (
+            <div style={{
+              width: '100%', padding: 5, boxSizing: 'border-box',
+            }}>
+              <h2>Steps</h2>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Layer type</th>
+                    <th>Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    layers.map((layer, idx) => {
+                      return (
+                        <tr>
+                          <td>
+                            { idx + 1 }
+                          </td>
+                          <td>
+                            { layer.type }
+                          </td>
+                          <td>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              style={{ display: 'flex', alignItems: 'center' }}
+                              onClick={this.deleteLayer(layer.id)}>
+                              <i className="material-icons" style={{ fontSize: 12 }}>close</i>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  }
+                </tbody>
+              </table>
+            </div>
+          ) : null
+        }
       </div>
     );
   }
