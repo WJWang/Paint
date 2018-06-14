@@ -1,8 +1,9 @@
 {
-  "name": "mckinseydemo",
+  "name": "paint",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "prop-types": "^15.6.1",
     "radium": "^0.24.0",
     "react": "^16.4.0",
     "react-dom": "^16.4.0",
@@ -29,5 +30,22 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "server": "rm -rf ./mock/uploads && PORT=8888 node mock/server.js"
-  }
+  },
+  "description": "This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).",
+  "main": ".eslintrc.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WJWang/Paint.git"
+  },
+  "keywords": [
+    "paint",
+    "react",
+    "canvas"
+  ],
+  "author": "WJWang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/WJWang/Paint/issues"
+  },
+  "homepage": "https://github.com/WJWang/Paint#readme"
 }
