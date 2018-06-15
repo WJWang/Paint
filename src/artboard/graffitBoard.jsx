@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import radium from 'radium';
 import PropTypes from 'prop-types';
+import { fromEvent } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 const styles = {
   graffitiBoardWrapper: {
@@ -16,11 +18,22 @@ const styles = {
   },
 };
 
+const coordinateConvert = (e) => {
+  e.preventDefault();
+  return {
+    x: e.offsetX,
+    y: e.offsetY,
+  };
+};
+
 class GraffitiBoard extends Component {
   constructor(props) {
     super(props);
     this.state = {
       graffitiBoard: null,
+      mouseDowns: null,
+      mouseUps: null,
+      mouseMoves: null,
       draw: false,
       stroke: null,
       initX: null,
@@ -35,13 +48,13 @@ class GraffitiBoard extends Component {
     this.initBoard({});
   }
 
-  drawMouseStart = (e) => {
+  drawMouseStart = (coordinate) => {
+    const { x, y } = coordinate;
     const { selectedTool } = this.props;
     this.setState({
       draw: true,
-      stroke: this.state.graffitiBoard.getContext('2d'),
-      initX: e.pageX - this.state.graffitiBoard.offsetX,
-      initY: e.pageY - this.state.graffitiBoard.offsetY,
+      initX: x,
+      initY: y,
     }, () => {
       const {
         stroke, graffitiBoard, initX, initY,
@@ -55,8 +68,8 @@ class GraffitiBoard extends Component {
       graffitiBoard.offsetY = graffitiBoard.offsetTop;
       while (o.offsetParent) {
         o = o.offsetParent;
-        this.graffitiBoard.offsetX += o.offsetLeft;
-        this.graffitiBoard.offsetY += o.offsetTop;
+        graffitiBoard.offsetX += o.offsetLeft;
+        graffitiBoard.offsetY += o.offsetTop;
       }
 
       if (selectedTool === 'PENCILE') {
@@ -66,17 +79,16 @@ class GraffitiBoard extends Component {
     });
   }
 
-  mouseDrawing = (e) => {
+  mouseDrawing = (coordinate) => {
+    const { x, y } = coordinate;
     const { selectedTool } = this.props;
     const {
-      draw, stroke, graffitiBoard, initX, initY,
+      draw, stroke, initX, initY,
     } = this.state;
-    const curX = e.pageX - graffitiBoard.offsetX;
-    const curY = e.pageY - graffitiBoard.offsetY;
 
     if (draw && selectedTool === 'PENCILE') {
-      const path = { x: curX, y: curY };
-      stroke.lineTo(curX, curY);
+      const path = { x, y };
+      stroke.lineTo(x, y);
       stroke.stroke();
       this.setState({
         trace: {
@@ -92,10 +104,10 @@ class GraffitiBoard extends Component {
     if (draw && selectedTool === 'RECTANGLE') {
       this.clear();
       const path = {
-        x: (initX <= curX) ? initX : curX,
-        y: (initY <= curY) ? initY : curY,
-        w: Math.abs(curX - initX),
-        h: Math.abs(curY - initY),
+        x: (initX <= x) ? initX : x,
+        y: (initY <= y) ? initY : y,
+        w: Math.abs(x - initX),
+        h: Math.abs(y - initY),
       };
       stroke.strokeRect(path.x, path.y, path.w, path.h);
 
@@ -111,10 +123,9 @@ class GraffitiBoard extends Component {
     }
   }
 
-  drawEnd = (e) => {
+  drawEnd = () => {
     const { trace } = this.state;
     const { selectedTool } = this.props;
-    e.preventDefault();
     if (selectedTool === 'RECTANGLE') {
       this.props.save({
         type: 'RECTANGLE',
@@ -146,25 +157,22 @@ class GraffitiBoard extends Component {
   }
 
   initBoard = () => {
+    const { boardHeight, boardWidth } = this.props;
+    const graffitiBoard = document.querySelector('#graffitiBoard');
+    graffitiBoard.width = boardWidth;
+    graffitiBoard.height = boardHeight;
+
     this.setState({
-      graffitiBoard: document.querySelector('#graffitiBoard'),
+      graffitiBoard,
+      stroke: graffitiBoard.getContext('2d'),
+      mouseDowns: fromEvent(graffitiBoard, 'mousedown').pipe(map(coordinateConvert)),
+      mouseMoves: fromEvent(graffitiBoard, 'mousemove').pipe(map(coordinateConvert)),
+      mouseUps: fromEvent(graffitiBoard, 'mouseup').pipe(map(coordinateConvert)),
     }, () => {
-      const { graffitiBoard } = this.state;
-      const { boardWidth, boardHeight } = this.props;
-      this.graffitiBoard = document.querySelector('#graffitiBoard');
-      graffitiBoard.width = boardWidth;
-      graffitiBoard.height = boardHeight;
-      const eventList = {
-        mousedown: this.drawMouseStart,
-        mousemove: this.mouseDrawing,
-        mouseup: this.drawEnd,
-        touchstart: this.drawTouchStart,
-        touchmove: this.touchDrawing,
-        touchend: this.drawEnd,
-      };
-      Object
-        .keys(eventList)
-        .forEach(key => this.graffitiBoard.addEventListener(key, eventList[key]));
+      const { mouseDowns, mouseMoves, mouseUps } = this.state;
+      mouseDowns.forEach(this.drawMouseStart);
+      mouseMoves.forEach(this.mouseDrawing);
+      mouseUps.forEach(this.drawEnd);
     });
   }
 
