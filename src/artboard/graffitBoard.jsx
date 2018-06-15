@@ -55,8 +55,8 @@ class GraffitiBoard extends Component {
       graffitiBoard.offsetY = graffitiBoard.offsetTop;
       while (o.offsetParent) {
         o = o.offsetParent;
-        this.graffitiBoard.offsetX += o.offsetLeft;
-        this.graffitiBoard.offsetY += o.offsetTop;
+        graffitiBoard.offsetX += o.offsetLeft;
+        graffitiBoard.offsetY += o.offsetTop;
       }
 
       if (selectedTool === 'PENCILE') {
@@ -146,14 +146,13 @@ class GraffitiBoard extends Component {
   }
 
   initBoard = () => {
+    const { boardWidth, boardHeight } = this.props;
+    const graffitiBoard = document.querySelector('#graffitiBoard');
+    graffitiBoard.width = boardWidth;
+    graffitiBoard.height = boardHeight;
     this.setState({
-      graffitiBoard: document.querySelector('#graffitiBoard'),
+      graffitiBoard,
     }, () => {
-      const { graffitiBoard } = this.state;
-      const { boardWidth, boardHeight } = this.props;
-      this.graffitiBoard = document.querySelector('#graffitiBoard');
-      graffitiBoard.width = boardWidth;
-      graffitiBoard.height = boardHeight;
       const eventList = {
         mousedown: this.drawMouseStart,
         mousemove: this.mouseDrawing,
@@ -164,7 +163,7 @@ class GraffitiBoard extends Component {
       };
       Object
         .keys(eventList)
-        .forEach(key => this.graffitiBoard.addEventListener(key, eventList[key]));
+        .forEach(key => this.state.graffitiBoard.addEventListener(key, eventList[key]));
     });
   }
 
