@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
+import { SketchPicker } from 'react-color';
+import ClickOutside from 'react-click-outside';
 import GraffitiBoard from './graffitBoard.jsx';
+
 
 const styles = {
   artBoardWrapper: {
@@ -54,6 +57,8 @@ class ArtBoard extends Component {
       boardHeight: 750,
       selectedTool: 'PENCILE',
       layers: [],
+      penColor: '#dc3545',
+      showPicker: false,
     };
   }
 
@@ -143,6 +148,7 @@ class ArtBoard extends Component {
     const { layers, resultBoard } = this.state;
     const stroke = resultBoard.getContext('2d');
     layers.forEach((layer) => {
+      stroke.strokeStyle = layer.color;
       if (layer.type === 'PENCILE') {
         this.drawPath({ paths: layer.path, stroke });
       }
@@ -154,7 +160,7 @@ class ArtBoard extends Component {
 
   render() {
     const {
-      selectedTool, boardWidth, boardHeight, layers,
+      selectedTool, boardWidth, boardHeight, layers, penColor, showPicker,
     } = this.state;
     const itemSelectedStyle = item => (
       item === selectedTool ? styles.controlPanelWrapper.controlItemSelected : {}
@@ -196,7 +202,41 @@ class ArtBoard extends Component {
             }}>
             <i className="material-icons">close</i>
           </button>
-
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              this.setState({
+                showPicker: true,
+                selectedTool: 'COLOR_PICKER',
+              });
+            }}
+            style={{
+              ...styles.controlPanelWrapper.controlItem,
+              height: 35,
+              width: 35,
+              backgroundColor: `${this.state.penColor}`,
+              zIndex: 100000,
+            }}>
+            {
+              (showPicker) && (
+                <ClickOutside
+                  onClickOutside={() => {
+                    this.setState({
+                      showPicker: false,
+                      selectedTool: 'PENCILE',
+                    });
+                  }}>
+                  <SketchPicker
+                    color={this.state.penColor}
+                    onChangeComplete={(color) => {
+                      this.setState({
+                        penColor: color.hex,
+                      });
+                    }} />
+                </ClickOutside>
+              )
+            }
+          </button>
         </div>
         <canvas
           id="resultBoard"
@@ -207,16 +247,33 @@ class ArtBoard extends Component {
             left: 0,
             position: 'absolute',
           }} />
-        <GraffitiBoard
-          selectedTool={selectedTool}
-          boardWidth={boardWidth}
-          boardHeight={boardHeight}
-          save={this.saveLayer} />
+
+        {
+          (!~['RECTANGLE', 'PENCILE'].indexOf(selectedTool)) ? (
+            <div
+              style={{
+                zIndex: 100,
+                position: 'relative',
+                backgroundColor: 'transparent',
+                cursor: 'crosshair',
+                width: `${boardWidth}px`,
+                height: `${boardHeight}px`,
+              }} />
+          ) : (
+            <GraffitiBoard
+              penColor={penColor}
+              selectedTool={selectedTool}
+              boardWidth={boardWidth}
+              boardHeight={boardHeight}
+              save={this.saveLayer} />
+          )
+        }
+
 
         {
           (layers.length) ? (
             <div style={{
-              width: '100%', padding: 5, boxSizing: 'border-box',
+              width: '100%', padding: 5, boxSizing: 'border-box', position: 'relative',
             }}>
               <h2>Steps</h2>
               <table className="table">
@@ -224,31 +281,37 @@ class ArtBoard extends Component {
                   <tr>
                     <th>#</th>
                     <th>Layer type</th>
+                    <th>Color</th>
                     <th>Delete</th>
                   </tr>
                 </thead>
                 <tbody>
                   {
-                    layers.map((layer, idx) => {
-                      return (
-                        <tr>
-                          <td>
-                            { idx + 1 }
-                          </td>
-                          <td>
-                            { layer.type }
-                          </td>
-                          <td>
-                            <button
-                              className="btn btn-danger btn-sm"
-                              style={{ display: 'flex', alignItems: 'center' }}
-                              onClick={this.deleteLayer(layer.id)}>
-                              <i className="material-icons" style={{ fontSize: 12 }}>close</i>
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
+                    layers.map((layer, idx) => (
+                      <tr key={`${Math.random() + idx}`}>
+                        <td>
+                          { idx + 1 }
+                        </td>
+                        <td>
+                          { layer.type }
+                        </td>
+                        <td>
+                          <div style={{
+                            backgroundColor: `${layer.color}`,
+                            width: 20,
+                            height: 20,
+                          }} />
+                        </td>
+                        <td>
+                          <button
+                            className="btn btn-danger btn-sm"
+                            style={{ display: 'flex', alignItems: 'center' }}
+                            onClick={this.deleteLayer(layer.id)}>
+                            <i className="material-icons" style={{ fontSize: 12 }}>close</i>
+                          </button>
+                        </td>
+                      </tr>
+                    ))
                   }
                 </tbody>
               </table>
