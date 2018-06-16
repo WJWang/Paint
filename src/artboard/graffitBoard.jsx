@@ -118,6 +118,7 @@ class GraffitiBoard extends Component {
     if (selectedTool === 'RECTANGLE') {
       this.props.save({
         type: 'RECTANGLE',
+        color: this.props.penColor,
         path: (trace.path.length) ? trace.path[trace.path.length - 1] : null,
       });
     }
@@ -125,6 +126,7 @@ class GraffitiBoard extends Component {
     if (selectedTool === 'PENCILE') {
       this.props.save({
         type: 'PENCILE',
+        color: this.props.penColor,
         path: trace.path,
       });
     }
